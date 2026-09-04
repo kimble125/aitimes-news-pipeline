@@ -53,3 +53,6 @@ outputs/*.xlsx
 .coverage
 htmlcov/
 .mypy_cache/
+
+# 로컬 설정 (config.example.json 을 복사해서 사용)
+config/config.json

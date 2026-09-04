@@ -1,183 +1,155 @@
-# ACTION_PLAN.md — 일정·체크리스트 제안안
+# ACTION_PLAN.md — 단계별 진행 체크리스트
 
-> **문서 성격: 제안안(draft proposal)**  
-> 날짜별 할 일과 담당은 **참고용 제안**입니다. 각 팀원은 본인 모델·학습 속도·가용 시간에 맞춰 **자율적으로** 일정을 조정하세요.  
-> 단, **머지 포인트(인터페이스 동결·E2E·제출)** 와 DoD는 팀 전체가 맞춰야 합니다.
+> 날짜가 아니라 **단계(Phase)** 기준입니다. 각자 속도에 맞춰 진행하되,
+> **머지 포인트**(Phase 끝의 굵은 줄)만 팀이 함께 맞춥니다.
+> 앞 Phase 가 안 끝나도 뒤 작업을 시작할 수 있게, 각 역할이 **독립적으로 개발 가능한 방법**을 함께 적어 뒀습니다.
 
-- 오늘: 2026-09-04 (금) — 기획·repo 세팅
-- 마감: 2026-09-09 (수)
+## 한눈에 보기
 
----
-
-## 한눈에 보는 제안 일정
-
-| 날짜 | Collect/Clean | Summarize/Analyze | Lead/Report | 머지 포인트 |
-|------|--------|--------|--------|-------------|
-| **9/4 (금)** | 문서·INTERFACE 리뷰 | 문서·SHARED_PROMPT 리뷰 | **repo+docs+스켈레톤 완료** | main에 초기 구조 push |
-| **9/5 (토)** | `fetch` RSS+raw 스키마 | AI 클라이언트 스텁 | storage+CLI 동기화 | `news_raw` 스키마 합의 |
-| **9/6 (일)** | `clean` + 샘플 raw→clean | `summarize` 샘플 동작 | 차트 폰트/경로 준비 | clean 샘플 N건 존재 |
-| **9/7 (월)** | crawl 보완·중복 정책 | `analyze` JSON 2+필드 | charts 2종 PNG | analysis 1회 성공 |
-| **9/8 (화)** | fetch/clean 버그픽스 | 요약·분석 품질 다듬기 | report+export 통합 E2E | **E2E 그린** |
-| **9/9 (수)** | 버퍼·이슈 대응 | 버퍼·이슈 대응 | 최종 merge·README·**제출** | 제출 체크리스트 |
+| Phase | Collect/Clean | Summarize/Analyze | Lead/Report | 머지 포인트 |
+|---|---|---|---|---|
+| **0. 셋업** | clone·venv·`initdb` | clone·venv·`.env` 키 확인 | ✅ 뼈대 완료 | 전원 `python main.py --help` 성공 |
+| **1. 수집** | `fetch --method rss` | AI 클라이언트 호출 성공 | 한글 폰트 탐지 | `news_raw` 에 실데이터 |
+| **2. 정제·요약** | `clean` | `summarize` | 차트 2종 PNG | `news_clean` + `news_summary` 각 1건+ |
+| **3. 크롤링·분석** | `fetch --method crawl`, 중복 정책 | `analyze` (JSON 2필드+) | `report` + `export` | `news_analysis` 1건 |
+| **4. 통합** | 버그픽스 | 품질 다듬기 | E2E·머지 | **E2E 그린** |
+| **5. 제출** | — | — | 최종 점검·제출 | 제출 체크리스트 완료 |
 
 ---
 
-## Day 0 — 2026-09-04 (금) 기획일
+## Phase 0 — 셋업 (전원, 10분)
 
-### Lead/Report (제안)
-- [x] GitHub repo 디렉터리·문서·스켈레톤 작성 (`README`, `docs/*`, `main.py`, `src/*` stub)
-- [ ] remote push 및 팀원 초대/권한 확인
-- [ ] `config/config.example.json` → 팀원에게 `config.json` 복사 안내
-- [ ] 슬랙/채팅에 **제안안**임을 명시하고 INTERFACE 리뷰 요청
+- [ ] `git clone` → `python3 -m venv .venv && source .venv/bin/activate`
+- [ ] `pip install -r requirements.txt`
+- [ ] `cp config/config.example.json config/config.json`
+- [ ] `cp .env.example .env` (Summarize/Analyze 는 `AI_API_KEY` 필수, 나머지는 없어도 됨)
+- [ ] `python main.py --help` → 서브커맨드 6종 확인
+- [ ] `python main.py initdb` → `data/pipeline.db` 생성 확인
+- [ ] 본인 역할 문서 1개 정독: `docs/roles/`
+- [ ] `git checkout -b feature/<본인-워크스트림>-<작업>`
 
-### Collect/Clean / Summarize/Analyze (제안)
-- [ ] PLAN·INTERFACE·SHARED_PROMPT 읽고 질문/변경 요청
-- [ ] 로컬 clone, venv, `pip install -r requirements.txt`
-- [ ] `.env` 준비(Summarize/Analyze: API 키; Collect/Clean: 없어도 fetch/clean 가능)
-
----
-
-## Day 1 — 2026-09-05 (토)
-
-### Collect/Clean — fetch + raw
-**목표(제안):** `fetch --source aitimes --method rss --limit N` 가 `news_raw`에 기록.
-
-체크리스트:
-- [ ] `src/storage/db.py`의 `news_raw` 스키마가 INTERFACE와 일치하는지 확인(불일치 시 Lead/Report과 합의)
-- [ ] `src/collectors/rss.py`: RSS 파싱 → dict 리스트
-- [ ] `src/collectors/crawl.py` 스텁 또는 링크 수집만 선행
-- [ ] `main.py fetch` 연결: `--method rss|crawl`, `--limit`, `--max-pages`
-- [ ] 중복: 동일 `url`이면 skip(기본) 로그
-- [ ] DoD: `limit=10`으로 실행 시 DB에 ≥1건(네트워크 가능 시) 또는 실패 원인 로그
-
-브랜치 예: `feature/collect-fetch-rss`
-
-### Summarize/Analyze — AI 클라이언트 스텁
-**목표(제안):** env 기반 클라이언트 + `summarize`가 “키 없으면 명확히 실패/스킵”.
-
-체크리스트:
-- [ ] `.env` / `AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL` 로드 확인
-- [ ] `src/ai/summarizer.py`: API 호출 함수 시그니처 확정(입력: title+body, 출력: summary_text)
-- [ ] `news_summary` 테이블 insert/upsert 경로 스케치
-- [ ] 프롬프트 v1을 SHARED_PROMPT 역할 추가분과 맞추기
-- [ ] DoD: `python main.py summarize --help` 및 dry 경로 로그
-
-브랜치 예: `feature/ai-summarize-stub`
-
-### Lead/Report — storage + CLI 동기화
-- [ ] `init_db()`로 4테이블 생성 스크립트 안정화
-- [ ] stub → 실제 dispatch에 팀원 PR 반영
-- [ ] 로그 포맷 통일 (`logging_setup`)
-- [ ] Collect/Clean raw 스키마 PR merge
-
-**머지 포인트:** `news_raw` 컬럼 동결(이후 변경은 INTERFACE 개정).
+**머지 포인트:** 전원이 `--help` 와 `initdb` 성공. 여기서 막히면 즉시 팀 채널에 공유.
 
 ---
 
-## Day 2 — 2026-09-06 (일)
+## Phase 1 — 수집 시작
 
-### Collect/Clean — clean
-- [ ] `src/cleaners/cleaner.py`: HTML→text, 공백 정규화, `word_count`
-- [ ] `python main.py clean --source aitimes --limit N`
-- [ ] 빈 본문 → `status=empty`
-- [ ] DoD: raw 샘플이 `news_clean`에 대응 행 생성
+### Collect/Clean
+- [ ] `src/collectors/rss.py` → `RSSCollector.fetch()` 구현
+- [ ] 타임아웃·개별 실패 스킵 처리
+- [ ] `python main.py fetch --method rss --limit 20` 성공
+- [ ] 재실행 시 중복 스킵 로그 확인
 
-### Summarize/Analyze — summarize on sample
-- [ ] `--unsummarized`로 미요약 clean만 처리
-- [ ] 성공 시 `news_summary` 저장, 실패 시 `status=error`
-- [ ] DoD: 실제 또는 모의(팀 합의)로 summary 1건+
+### Summarize/Analyze — *수집을 기다리지 말 것*
+- [ ] `.env` 로드 및 API 호출 1회 성공 (짧은 텍스트로 테스트)
+- [ ] `summarize_article()` 시그니처 확정
+- [ ] 데이터가 없으면 `news_clean` 에 테스트 행을 직접 INSERT 해서 개발
+
+```sql
+INSERT INTO news_clean (raw_id, source, url, title, body_text, word_count, cleaned_at, status)
+VALUES (0, 'aitimes', 'http://test/1', '테스트 기사', '본문 텍스트...', 3, '2026-01-01T00:00:00Z', 'clean');
+```
 
 ### Lead/Report
-- [ ] matplotlib 한글 폰트 탐지 유틸
+- [ ] `setup_korean_font()` 구현 — 본인 OS 에서 한글 폰트 탐지
 - [ ] `outputs/charts`, `outputs/reports` 경로 생성 확인
-- [ ] clean 샘플 기준으로 리포트용 SELECT 초안
 
-**머지 포인트:** 샘플 N건 clean 존재 → 이후 AI/리포트가 동일 DB 사용.
-
----
-
-## Day 3 — 2026-09-07 (월)
-
-### Collect/Clean — crawl + 중복
-- [ ] list 페이지 → detail 파싱
-- [ ] `delay_sec` 적용, `--max-pages`
-- [ ] `duplicate_policy` skip/upsert 동작 테스트
-- [ ] DoD: `--method crawl --limit 5` 성공 또는 셀렉터 이슈 문서화
-
-### Summarize/Analyze — analyze
-- [ ] 배치 기사(clean+summary) 입력 → `insights_json`
-- [ ] 최소 2필드: 예) `trends` + `keywords` (또는 similarities_differences / implications)
-- [ ] `python main.py analyze --limit 50`
-- [ ] DoD: `news_analysis` 1행 `status=ok`
-
-### Lead/Report — charts
-- [ ] 카테고리별 건수 막대 그래프 PNG
-- [ ] 일별 수집/발행 추이 선 그래프 PNG
-- [ ] DoD: `outputs/charts/`에 PNG 2개+
-
-**머지 포인트:** analysis JSON 스키마 고정, 차트 입력 쿼리 합의.
+**머지 포인트:** `news_raw` 에 실제 기사 행 존재 → 이후 전원이 같은 DB 로 개발.
 
 ---
 
-## Day 4 — 2026-09-08 (화) — Integration
+## Phase 2 — 정제 · 요약
 
-### 전원
-- [ ] main에서 한 경로 E2E:
-  ```bash
-  python main.py fetch --source aitimes --method rss --limit 20
-  python main.py clean --limit 20
-  python main.py summarize --unsummarized --limit 20
-  python main.py analyze --limit 20
-  python main.py report --top-n 10 --format md
-  python main.py export --formats csv,jsonl
-  ```
-- [ ] 로그에 ERROR가 있으면 티켓화 후 당일 수정
-- [ ] README 실행 예시와 실제 옵션 일치
+### Collect/Clean
+- [ ] `clean_article()` — HTML 제거, 공백 정규화, `word_count`, 날짜 ISO8601 통일
+- [ ] `clean_articles()` — `db.get_raw_for_clean` / `db.upsert_clean` 연결
+- [ ] 빈 본문 → `status='empty'`
+- [ ] `python main.py clean --limit 30` 성공
+
+### Summarize/Analyze
+- [ ] `run_summarize()` — 미요약 건만 처리, 건별 진행 로그
+- [ ] 실패 시 `status='error'` + ERROR 로그 (예외 전파 금지)
+- [ ] `python main.py summarize --unsummarized --limit 10` 성공
 
 ### Lead/Report
-- [ ] `report`: 품질 지표 2+, TOP N, AI 인사이트 섹션
-- [ ] `export`: CSV+JSONL (+가능하면 xlsx)
-- [ ] 충돌 resolve, main 그린 유지
+- [ ] `make_charts()` — 카테고리 막대 + 일자별 선그래프 PNG 2개
+- [ ] 데이터 0건일 때 WARNING 후 빈 리스트 반환
 
-**머지 포인트: E2E 그린** — 이 시점 이후 breaking schema 변경 금지(긴급 제외).
-
----
-
-## Day 5 — 2026-09-09 (수) — Buffer + Submit
-
-### 버퍼 (오전 제안)
-- [ ] 네트워크/폰트/API 실패 재시도
-- [ ] 스크린샷·산출물 샘플을 `outputs/`에 남길지 팀 결정(용량·gitignore 주의)
-- [ ] 커밋 메시지·작성자 확인
-
-### 제출 체크리스트 (Lead/Report 주도)
-- [ ] remote `main` 최신 + 팀원 기여 커밋 포함
-- [ ] `.env` / API 키 미포함 (`git status`, `git log -p` 간단 확인)
-- [ ] `requirements.txt`로 클린 venv 설치 가능
-- [ ] README에 실행 방법·역할·마감 명시
-- [ ] 과제 제출 양식(학교/플랫폼)에 repo URL·팀원 정보 기입
-- [ ] 리포트 파일·차트·export 샘플이 재현 가능함을 확인
+**머지 포인트:** `news_clean` 과 `news_summary` 에 각각 1건 이상.
 
 ---
 
-## 최소 성공 경로 (일정 밀릴 때)
+## Phase 3 — 크롤링 · 분석 · 리포트
 
-우선순위(제안):
-1. RSS fetch → clean → SQLite  
-2. summarize 1건 + analyze 필드 2개  
-3. 차트 2 PNG + report MD + export CSV+JSONL  
-4. crawl은 “동작 또는 제한사항 문서화”
+### Collect/Clean
+- [ ] `CrawlCollector.fetch()` — list 페이지 → detail 파싱
+- [ ] `delay_sec` sleep, `max_pages` 준수, User-Agent 설정
+- [ ] `duplicate_policy` skip/upsert 양쪽 동작 확인
+- [ ] `python main.py fetch --method crawl --limit 10` 성공
 
-Selenium·xlsx·upsert는 시간 되면 추가.
+### Summarize/Analyze
+- [ ] `analyze_batch()` — 배치 입력 → JSON 파싱
+- [ ] `insights_json` non-empty 키 **2개 이상**
+- [ ] `python main.py analyze --limit 50` 성공
+
+### Lead/Report
+- [ ] `write_report()` — 품질지표 2+, TOP N, AI 인사이트, 콘솔+파일
+- [ ] `export_data()` — CSV + JSONL (+ 가능하면 XLSX)
+
+**머지 포인트:** `news_analysis` 에 `status='ok'` 1건, 차트 PNG 2개, 리포트 파일 1개.
 
 ---
 
-## 커뮤니케이션 (제안)
+## Phase 4 — 통합 E2E (전원)
 
-- 스키마/CLI 변경: INTERFACE.md 수정 PR + 채팅 한 줄 공지
-- 막히면: 에러 로그 10줄 + 재현 명령 공유
-- 머지는 Lead/Report; 급한 hotfix는 `hotfix/` 브랜치
+`main` 브랜치에서 한 번에:
+
+```bash
+rm -f data/pipeline.db          # 깨끗한 상태에서 재현되는지 확인
+python main.py initdb
+python main.py fetch --source aitimes --method rss --limit 20
+python main.py fetch --source aitimes --method crawl --limit 10
+python main.py clean --limit 30
+python main.py summarize --unsummarized --limit 20
+python main.py analyze --limit 50
+python main.py report --top-n 10 --format md
+python main.py export --formats csv,jsonl
+```
+
+- [ ] 위 9줄이 **에러 없이** 끝난다
+- [ ] `logs/pipeline.log` 에 ERROR 가 없다 (있으면 티켓화)
+- [ ] README 의 실행 예시가 실제 옵션과 일치한다
+- [ ] `docs/EVALUATION.md` 대조표의 "구현 위치" 가 실제와 맞다
+
+**머지 포인트: E2E 그린.** 이 시점 이후 breaking 스키마 변경 금지.
 
 ---
 
-*본 일정은 제안안이며, 개인 일정에 맞게 앞당기거나 바꿔도 됩니다. 9/8 E2E와 9/9 제출만 팀 공통 앵커로 지켜 주세요.*
+## Phase 5 — 제출 (Lead/Report 주도)
+
+- [ ] `git status` — `.env`, `*.db`, 산출물이 커밋되지 않았는지
+- [ ] `git log -p | grep -i "api.key"` — 키 유출 없음
+- [ ] `git shortlog -sn` — 팀원 3명 커밋이 모두 보이는지
+- [ ] 클린 venv 에서 `pip install -r requirements.txt` 로 설치 재현
+- [ ] `docs/EVALUATION.md` 검증 명령 9개 전부 통과
+- [ ] 저장소 문서·코드에 실명·개인정보 0건 (`git grep` 확인)
+- [ ] 제출 양식에 저장소 URL 기입
+
+---
+
+## 최소 성공 경로 (시간이 모자랄 때 이 순서로)
+
+1. RSS `fetch` → `clean` → SQLite 적재
+2. `summarize` 1건 + `analyze` 필드 2개
+3. 차트 PNG 2개 + `report` MD + `export` CSV/JSONL
+4. 크롤링은 "동작" 또는 "제한사항 문서화" 중 하나
+
+Selenium · XLSX · upsert · 보너스(list/show, 감성분석)는 여유가 생기면 추가합니다.
+
+---
+
+## 커뮤니케이션 규칙
+
+- 스키마·CLI 옵션 변경 → `docs/INTERFACE.md` 수정 + 팀 채널 한 줄 공지
+- 막혔을 때 → **에러 로그 10줄 + 재현 명령**을 붙여서 공유 (스크린샷보다 텍스트)
+- 머지는 Lead/Report 가 담당, 급한 수정은 `hotfix/` 브랜치

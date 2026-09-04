@@ -4,10 +4,8 @@
 > 이 문서는 팀 합의를 위한 **초안**입니다. 사용 모델, 세부 구현, 작업 시간·일정은 각 팀원(Collect/Clean·Summarize/Analyze·Lead/Report)이 **자율적으로** 결정합니다.  
 > 다만 **인터페이스·스키마·CLI 계약·Definition of Done(DoD)** 은 가능한 한 구체화해 두었으므로, 변경 시 `docs/INTERFACE.md`와 함께 팀 채널에 공유해 주세요.
 
-- 작성일: 2026-09-04  
 - 과제: A2-2 / Project B  
-- 소스: https://www.aitimes.com/  
-- 마감: 2026-09-09 (수)
+- 소스: https://www.aitimes.com/
 
 ---
 
@@ -144,9 +142,9 @@
 | `src/cleaners/cleaner.py` | Collect/Clean | raw→clean 변환, 중복 정책 적용 보조 |
 | `src/ai/summarizer.py`, `analyzer.py` | Summarize/Analyze | AI 클라이언트, 요약·분석 JSON |
 | `src/report/charts.py`, `reporter.py`, `exporter.py` | Lead/Report | 차트·리포트·export |
-| `src/storage/db.py` | Lead/Report(주도) / 전원 사용 | 스키마·upsert/skip 헬퍼 |
+| `src/storage/db.py` | Lead/Report(주도) / 전원 사용 | 스키마·upsert/skip 헬퍼 — **구현 완료** |
 | `src/utils/config.py`, `logging_setup.py` | Lead/Report(초기) / 공유 | 설정·로깅 |
-| `main.py` | Lead/Report(스켈레톤) / 전원 확장 | argparse 디스패치 |
+| `main.py` | Lead/Report | argparse 디스패치 — **구현 완료**, 각 역할은 호출되는 모듈만 채우면 됨 |
 
 ---
 
@@ -262,7 +260,7 @@ TOP N: 예) 최신 N건, 또는 키워드 점수 상위 N건(분석 JSON의 `top
 | AI API 키/쿼터 | summarize/analyze 불가 | `.env` 분리, dry-run·샘플 요약 경로(팀 합의), 에러 로깅 |
 | 한글 폰트 미설치 | 차트 깨짐 | 폰트 탐지 로그, 설치 안내 README |
 | 스키마 불일치로 merge 충돌 | 통합 지연 | INTERFACE.md 단일 진실원, Lead/Report이 DB 마이그레이션 조율 |
-| 일정 압박(9/9) | 미완성 제출 | 9/8 E2E, 9/9 버퍼; 최소 경로(RSS→clean→요약1건→차트2→export2) 우선 |
+| 통합 지연 | 미완성 제출 | 최소 경로(RSS→clean→요약1건→차트2→export2)를 먼저 그린으로 만들고 나머지를 얹는다 |
 
 ---
 
@@ -278,4 +276,4 @@ TOP N: 예) 최신 N건, 또는 키워드 점수 상위 N건(분석 JSON의 `top
 
 ---
 
-*이 제안안은 2026-09-04 기준입니다. 구현 중 변경은 PR/채팅으로 공유하고 INTERFACE를 갱신합니다.*
+*구현 중 변경은 PR/채팅으로 공유하고 `docs/INTERFACE.md` 를 함께 갱신합니다.*

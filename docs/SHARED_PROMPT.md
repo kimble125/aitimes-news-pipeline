@@ -30,6 +30,7 @@
 중복: url(및 guid) 기준 skip 또는 upsert (config.duplicate_policy)
 로깅: INFO/WARNING/ERROR
 모듈 구조 유지: src/collectors, cleaners, ai, report, storage, utils
+main.py 와 src/storage/db.py 는 이미 구현되어 있다. 수정하지 말고 호출해서 쓸 것.
 문서 docs/INTERFACE.md 의 컬럼·경로·status 계약을 깨지 말 것.
 가짜 메트릭을 하드코딩하지 말 것. DB에서 계산할 것.
 응답은 구체적 패치/코드 위주로, 기존 stub의 NotImplementedError를 실제 구현으로 교체하는 방향을 우선한다.
@@ -144,7 +145,7 @@ export:
 통합:
 - 팀원 브랜치 merge, 충돌 시 INTERFACE 우선
 - .gitignore 로 .env, *.db, 산출물 제외 확인
-- 9/8 E2E, 9/9 제출
+- docs/EVALUATION.md 의 검증 명령 9개가 전부 통과하는지 확인
 
 DoD:
 - PNG 2+, report 파일, export 파일 2형식+

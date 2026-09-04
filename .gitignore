@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Secrets & local config
+.env
+config/config.json
+*.pem
+
+# Data & runtime
+data/**/*.db
+data/**/*.sqlite
+data/**/*.sqlite3
+!data/**/.gitkeep
+logs/**/*.log
+!logs/.gitkeep
+
+# Outputs (keep dirs)
+outputs/charts/*
+!outputs/charts/.gitkeep
+outputs/reports/*
+!outputs/reports/.gitkeep
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Jupyter / pytest
+.ipynb_checkpoints/
+.pytest_cache/
+.coverage
+htmlcov/

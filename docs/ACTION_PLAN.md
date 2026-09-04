@@ -43,14 +43,14 @@
 **목표(제안):** `fetch --source aitimes --method rss --limit N` 가 `news_raw`에 기록.
 
 체크리스트:
-- [ ] `src/storage/db.py`의 `news_raw` 스키마가 INTERFACE와 일치하는지 확인(불일치 시 호연과 합의)
+- [ ] `src/storage/db.py`의 `news_raw` 스키마가 INTERFACE와 일치하는지 확인(불일치 시 Lead/Report과 합의)
 - [ ] `src/collectors/rss.py`: RSS 파싱 → dict 리스트
 - [ ] `src/collectors/crawl.py` 스텁 또는 링크 수집만 선행
 - [ ] `main.py fetch` 연결: `--method rss|crawl`, `--limit`, `--max-pages`
 - [ ] 중복: 동일 `url`이면 skip(기본) 로그
 - [ ] DoD: `limit=10`으로 실행 시 DB에 ≥1건(네트워크 가능 시) 또는 실패 원인 로그
 
-브랜치 예: `feature/jj-fetch-rss`
+브랜치 예: `feature/collect-fetch-rss`
 
 ### Summarize/Analyze — AI 클라이언트 스텁
 **목표(제안):** env 기반 클라이언트 + `summarize`가 “키 없으면 명확히 실패/스킵”.
@@ -62,7 +62,7 @@
 - [ ] 프롬프트 v1을 SHARED_PROMPT 역할 추가분과 맞추기
 - [ ] DoD: `python main.py summarize --help` 및 dry 경로 로그
 
-브랜치 예: `feature/psb-ai-stub`
+브랜치 예: `feature/ai-summarize-stub`
 
 ### Lead/Report — storage + CLI 동기화
 - [ ] `init_db()`로 4테이블 생성 스크립트 안정화

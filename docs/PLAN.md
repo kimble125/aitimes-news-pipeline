@@ -258,10 +258,10 @@ TOP N: 예) 최신 N건, 또는 키워드 점수 상위 N건(분석 JSON의 `top
 |------|------|------|
 | RSS URL 변경/차단 | fetch 실패 | crawl 폴백, URL을 config로 분리 |
 | HTML 구조 변경 | 파서 깨짐 | 셀렉터 한곳 집중, 샘플 HTML fixture 보관 |
-| 과도한 요청 | IP 차단·윤리 문제 | delay, limit, max_pages |
+| 과도한 요청 | IP 차단· eth 문제 | delay, limit, max_pages |
 | AI API 키/쿼터 | summarize/analyze 불가 | `.env` 분리, dry-run·샘플 요약 경로(팀 합의), 에러 로깅 |
 | 한글 폰트 미설치 | 차트 깨짐 | 폰트 탐지 로그, 설치 안내 README |
-| 스키마 불일치로 merge 충돌 | 통합 지연 | INTERFACE.md 단일 진실원, 호연이 DB 마이그레이션 조율 |
+| 스키마 불일치로 merge 충돌 | 통합 지연 | INTERFACE.md 단일 진실원, Lead/Report이 DB 마이그레이션 조율 |
 | 일정 압박(9/9) | 미완성 제출 | 9/8 E2E, 9/9 버퍼; 최소 경로(RSS→clean→요약1건→차트2→export2) 우선 |
 
 ---

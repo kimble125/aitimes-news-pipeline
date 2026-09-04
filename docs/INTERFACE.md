@@ -191,4 +191,4 @@ CREATE TABLE IF NOT EXISTS news_analysis (
 
 ---
 
-*계약 위반이 생기면 merge 전에 호연·해당 담당자와 짧은 동기화.*
+*계약 위반이 생기면 merge 전에 Lead/Report·해당 담당자와 짧은 동기화.*

@@ -4,33 +4,20 @@ __pycache__/
 *$py.class
 *.so
 .Python
-.venv/
-venv/
-ENV/
-env/
 *.egg-info/
-.eggs/
 dist/
 build/
+.eggs/
 
-# Secrets & local config
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment / secrets
 .env
-config/config.json
+.env.local
 *.pem
-
-# Data & runtime
-data/**/*.db
-data/**/*.sqlite
-data/**/*.sqlite3
-!data/**/.gitkeep
-logs/**/*.log
-!logs/.gitkeep
-
-# Outputs (keep dirs)
-outputs/charts/*
-!outputs/charts/.gitkeep
-outputs/reports/*
-!outputs/reports/.gitkeep
 
 # IDE / OS
 .idea/
@@ -39,8 +26,30 @@ outputs/reports/*
 .DS_Store
 Thumbs.db
 
-# Jupyter / pytest
-.ipynb_checkpoints/
+# Logs
+logs/*.log
+!logs/.gitkeep
+
+# Data artifacts (keep directory structure)
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+data/raw/*
+!data/raw/.gitkeep
+data/clean/*
+!data/clean/.gitkeep
+
+# Outputs (optional: keep structure, ignore generated files)
+outputs/charts/*.png
+!outputs/charts/.gitkeep
+outputs/reports/*
+!outputs/reports/.gitkeep
+outputs/*.csv
+outputs/*.jsonl
+outputs/*.xlsx
+
+# pytest / coverage
 .pytest_cache/
 .coverage
 htmlcov/
+.mypy_cache/

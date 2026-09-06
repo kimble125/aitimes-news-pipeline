@@ -23,7 +23,7 @@
   },
   "crawl": {
     "delay_sec": 1.5,
-    "max_pages": 5,
+    "max_pages": 1,
     "max_articles_per_run": 50,
     "respect_robots_txt": true
   },

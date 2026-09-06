@@ -199,6 +199,11 @@ CREATE TABLE IF NOT EXISTS news_analysis (
   - 그래서 **실행 순서도 계약입니다: `fetch --method rss` → `fetch --method crawl` → `clean`**
     (순서가 반대면 RSS 가 크롤링 본문·카테고리를 NULL 로 덮어씁니다.)
 - `crawl.delay_sec` : number
+- `crawl.max_pages` : number — **현재 `1` (의도된 값)**
+  - aitimes.com 의 `articleList.html` 은 `?page=N` 파라미터를 무시하고 항상 1페이지(약 20건)를
+    돌려줍니다(실측: page=1/2/3 결과 idxno 완전 동일). 2 이상으로 올리면 **같은 페이지를
+    중복 요청**할 뿐이라 크롤링 윤리(과도한 요청 금지)에 어긋납니다.
+  - 수집량은 RSS(`rss_urls`) 쪽을 늘려서 확보하세요.
 - `paths.db` : string
 - `report.top_n` : number
 - `logging.level` : `"INFO"` 등

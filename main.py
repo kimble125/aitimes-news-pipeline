@@ -127,6 +127,7 @@ def cmd_analyze(args: argparse.Namespace, config: dict[str, Any]) -> int:
         db_path=_db_path(config),
         limit=args.limit,
         since=args.since,
+        category=args.category,
         config=config,
     )
     logger.info("분석 %s", "완료" if ok else "실패")
@@ -167,6 +168,7 @@ def cmd_export(args: argparse.Namespace, config: dict[str, Any]) -> int:
         _db_path(config),
         args.out or "outputs",
         formats=formats,
+        status=args.status,
         config=config,
     )
     logger.info("내보내기 완료 %d개: %s", len(files), files)
@@ -237,7 +239,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_exp = sub.add_parser("export", help="CSV/JSONL/Excel 내보내기")
     p_exp.add_argument("--formats", default=None, help="쉼표 구분 (예: csv,jsonl,xlsx)")
-    p_exp.add_argument("--status", default=None, help="필터 (예: summarized)")
+    p_exp.add_argument("--status", default=None, choices=["summarized", "unsummarized", "clean"],
+                       help="내보낼 대상 필터 (예: summarized)")
     p_exp.add_argument("--out", default=None, help="출력 디렉터리 (기본: outputs)")
     p_exp.set_defaults(func=cmd_export)
 

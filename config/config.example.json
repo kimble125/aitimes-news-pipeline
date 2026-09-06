@@ -14,7 +14,7 @@
       "user_agent": "aitimes-news-pipeline/0.1 (academic assignment; contact: team)"
     }
   },
-  "duplicate_policy": "skip",
+  "duplicate_policy": "upsert",
   "duplicate_keys": ["url", "guid"],
   "timeouts": {
     "http_connect_sec": 10,

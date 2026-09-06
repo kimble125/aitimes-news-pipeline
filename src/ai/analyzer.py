@@ -23,9 +23,17 @@ def run_analyze(
     db_path: str,
     limit: int = 50,
     since: str | None = None,
+    category: str | None = None,
     config: dict[str, Any] | None = None,
 ) -> bool:
-    logger.info("run_analyze stub db=%s limit=%s since=%s", db_path, limit, since)
+    """조건별(기간=since, 카테고리=category) 기사를 모아 AI 분석 1건을 저장한다.
+
+    대상 조회는 `db.get_clean_articles(conn, limit=limit, since=since, category=category)`.
+    """
+    logger.info(
+        "run_analyze stub db=%s limit=%s since=%s category=%s",
+        db_path, limit, since, category,
+    )
     if not os.getenv("AI_API_KEY"):
         logger.error("AI_API_KEY missing — analyze 중단")
         return False

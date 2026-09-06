@@ -13,12 +13,17 @@ def export_data(
     db_path: str,
     out_dir: str,
     formats: list[str],
+    status: str | None = None,
     config: dict[str, Any] | None = None,
 ) -> list[str]:
     """
     TODO(Lead/Report): pandas 등으로 news_clean(+summary) export.
     formats 예: ['csv','jsonl','xlsx'] — 최소 2종.
+    status: 'summarized' | 'unsummarized' | 'clean' — 과제 §8 필터링 옵션.
     """
     Path(out_dir).mkdir(parents=True, exist_ok=True)
-    logger.info("export_data stub db=%s out=%s formats=%s", db_path, out_dir, formats)
+    logger.info(
+        "export_data stub db=%s out=%s formats=%s status=%s",
+        db_path, out_dir, formats, status,
+    )
     raise NotImplementedError("export_data 미구현 — csv/jsonl 우선")

@@ -27,9 +27,14 @@ python main.py initdb         # SQLite 스키마(4테이블) 생성
 
 ## 2. 전체 실행 (E2E)
 
+> ⚠️ **`rss` → `crawl` 순서를 지키세요.** 두 방식이 같은 기사 URL 을 수집하기 때문에,
+> `duplicate_policy: "upsert"` 와 이 순서가 맞물려야 크롤링이 가져온 **카테고리와 본문 전문**이
+> RSS 행 위에 채워집니다. 순서가 반대면 RSS(리드 문단·카테고리 없음)가 덮어써서
+> 카테고리 차트가 비고 요약 품질이 떨어집니다.
+
 ```bash
-python main.py fetch --source aitimes --method rss --limit 20   # RSS 수집
-python main.py fetch --source aitimes --method crawl --limit 10 # 크롤링 수집
+python main.py fetch --source aitimes --method rss --limit 20   # ① RSS 수집 (넓게)
+python main.py fetch --source aitimes --method crawl --limit 20 # ② 크롤링으로 본문·카테고리 보강
 python main.py clean --limit 30
 python main.py summarize --unsummarized --limit 20
 python main.py analyze --limit 50

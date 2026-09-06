@@ -14,13 +14,24 @@
 ## 시작하기
 
 ```bash
-git checkout -b feature/ai-summarize
+git checkout main && git pull                 # 수집·정제가 머지되어 있습니다
+git checkout feature/ai-summarize && git rebase main
+
+cp config/config.example.json config/config.json
 cp .env.example .env      # AI_API_KEY, AI_BASE_URL, AI_MODEL 채우기 (절대 커밋 금지)
+
+# 요약할 실제 기사 만들기 — 순서 중요 (rss 먼저, crawl 나중)
+python main.py initdb
+python main.py fetch --method rss   --limit 20
+python main.py fetch --method crawl --limit 20
+python main.py clean
+
 python main.py summarize --limit 3   # 지금은 "미구현" 에러 — 여기서 시작
 ```
 
-> **먼저 확인:** 요약할 기사가 있어야 합니다. Collect/Clean 이 아직이면
-> `python main.py initdb` 후 `news_clean` 에 테스트 행 몇 개를 직접 INSERT 해서 개발해도 됩니다.
+> **데이터 확인:** 위 4줄이면 `news_clean` 에 카테고리와 **본문 전문**(300단어 내외)을 갖춘
+> 20건 정도가 생깁니다. `data/pipeline.db` 는 gitignore 라 각자 로컬에서 만들어야 합니다.
+> `crawl` 을 건너뛰면 본문이 RSS 리드 문단(60단어대)만 남아 요약할 내용이 부족합니다.
 
 ## 작업 1 — `summarize`
 
@@ -69,7 +80,11 @@ def run_summarize(db_path, limit=20, clean_id=None, unsummarized=True, config=No
 
 ```python
 analyze_batch(articles: list[dict], *, model: str | None = None) -> dict
+run_analyze(db_path, limit=50, since=None, category=None, config=None) -> bool
 ```
+
+`main.py` 가 `--limit / --since / --category` 를 이미 `run_analyze()` 로 넘겨줍니다.
+과제 요구사항이 "**조건별(기간, 카테고리)** 종합 분석" 이므로 **두 필터를 모두 받아** 넘기세요.
 
 여러 기사(요약 우선, 없으면 본문 일부)를 **한 번의 호출**로 보내 구조화 JSON 을 받습니다.
 **최소 2개 키를 채워야 과제 요구사항을 충족합니다.**
@@ -88,11 +103,14 @@ analyze_batch(articles: list[dict], *, model: str | None = None) -> dict
 - 저장은 `db.insert_analysis(conn, {"batch_key": ..., "insights_json": result, "model": ...})`
   — `insights_json` 에 dict 를 그대로 넘겨도 자동 직렬화됩니다.
 - 대상 기사 조회: `db.get_clean_articles(conn, limit=limit, since=since, category=category)`
+  — `with_summary=True`(기본)면 각 행에 `summary_text` 가 함께 옵니다. **요약본 우선, 없으면 `body_text` 앞부분**을 쓰세요.
+  - 사용 가능한 카테고리 값 확인: `sqlite3 data/pipeline.db "SELECT DISTINCT category FROM news_clean;"`
 
 **완료 기준(DoD)**
 - [ ] `python main.py analyze --limit 50` 이 성공하고 `news_analysis` 에 `status='ok'` 행 1개
 - [ ] `insights_json` 에 **non-empty 키가 2개 이상**
-- [ ] `--since 2026-09-01` 같은 필터가 동작한다
+- [ ] `--since 2026-09-01` 같은 기간 필터가 동작한다
+- [ ] `--category 산업일반` 같은 카테고리 필터가 동작한다 (과제 필수)
 
 ## 막혔을 때
 

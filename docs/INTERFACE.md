@@ -123,35 +123,54 @@ CREATE TABLE IF NOT EXISTS news_analysis (
 
 ---
 
-## 3. Python 함수 계약 (제안 시그니처)
+## 3. Python 함수 계약 (실제 시그니처)
 
-팀원이 이 이름을 맞추면 `main.py` 연결이 쉬움.
+> 아래는 **현재 코드에 구현되어 있는 그대로**입니다. 여기 적힌 이름·인자를 그대로 쓰면
+> `main.py` 연결이 이미 되어 있어 추가 배선이 필요 없습니다.
+> 바꾸려면 §6 변경 프로세스를 따르세요.
 
-### storage (`src/storage/db.py`)
+### storage (`src/storage/db.py`) — **구현 완료, 그대로 호출만 하면 됨**
+- `get_connection(db_path: str) -> sqlite3.Connection`  # `with` 로 사용, row_factory=Row
 - `init_db(db_path: str) -> None`
-- `upsert_raw(conn, row: dict, policy: str) -> str`  # returns 'inserted'|'updated'|'skipped'
-- `get_raw_for_clean(conn, source: str | None, limit: int | None) -> list[dict]`
+- `now_iso() -> str`  # 모든 타임스탬프 컬럼 형식: `YYYY-MM-DDTHH:MM:SSZ`
+- `upsert_raw(conn, row: dict, policy: str = "skip") -> str`  # 'inserted'|'updated'|'skipped'
+- `get_raw_for_clean(conn, source=None, limit=None, include_cleaned=False) -> list[dict]`
 - `upsert_clean(conn, row: dict) -> int`  # clean id
-- `get_unsummarized(conn, limit: int | None) -> list[dict]`
+- `get_unsummarized(conn, limit=None, clean_id=None) -> list[dict]`
+- `get_clean_articles(conn, limit=None, since=None, category=None, with_summary=True) -> list[dict]`
 - `upsert_summary(conn, row: dict) -> int`
-- `insert_analysis(conn, row: dict) -> int`
-- `fetch_report_frame(conn) ->` pandas-compatible rows / list[dict]
+- `insert_analysis(conn, row: dict) -> int`  # insights_json 에 dict 를 넘기면 자동 직렬화
+- `get_latest_analysis(conn) -> dict | None`  # `result["insights"]` 에 파싱된 dict
+- `count_rows(conn, table: str, where: str = "", params=()) -> int`
+- `category_counts(conn) -> list[tuple[str, int]]`  # 차트 1번용
+- `daily_counts(conn) -> list[tuple[str, int]]`  # 차트 2번용
+- `pipeline_stats(conn) -> dict`  # 품질 지표 원천 수치
 
-### collectors
-- `BaseCollector.fetch(limit: int, **kwargs) -> list[dict]`  # raw row dicts
-- `RSSCollector`, `CrawlCollector`
+### collectors (`src/collectors/`) — **구현 완료**
+- `BaseCollector(config: dict, source: str = "aitimes")`
+  - `.timeout -> tuple[float, float]`  # (connect, read), config.timeouts 에서
+  - `.build_session() -> requests.Session`  # User-Agent 적용
+- `RSSCollector.fetch(limit: int = 20, **kwargs) -> list[dict]`
+- `CrawlCollector.fetch(limit: int = 20, **kwargs) -> list[dict]`  # kwargs: `max_pages`
 
-### cleaner
-- `clean_article(raw_row: dict) -> dict`  # clean row dict without id
+### cleaner (`src/cleaners/cleaner.py`) — **구현 완료**
+- `clean_article(raw_row: dict) -> dict`  # 순수 함수, id 없는 clean row
+- `clean_articles(db_path, source=None, limit=None, force=False, config=None) -> int`
 
-### ai
-- `summarize_article(title: str, body: str, *, model: str) -> str`
-- `analyze_batch(articles: list[dict], *, model: str) -> dict`
+### ai (`src/ai/`) — **미구현 (Summarize/Analyze 담당)**
+- `summarize_article(title: str, body: str, *, model: str | None = None) -> str`
+- `run_summarize(db_path, limit=20, clean_id=None, unsummarized=True, config=None) -> int`
+- `analyze_batch(articles: list[dict], *, model: str | None = None) -> dict`
+- `run_analyze(db_path, limit=50, since=None, category=None, config=None) -> bool`
 
-### report
-- `make_charts(conn, out_dir: str) -> list[str]`  # png paths
-- `write_report(conn, out_dir: str, top_n: int, fmt: str) -> str`
-- `export_data(conn, out_dir: str, formats: list[str]) -> list[str]`
+### report (`src/report/`) — **미구현 (Lead/Report 담당)**
+- `setup_korean_font() -> str | None`
+- `make_charts(db_path: str, out_dir: str, config=None) -> list[str]`  # png 경로들
+- `write_report(db_path: str, out_dir: str, top_n=10, fmt="md", config=None) -> str`
+- `export_data(db_path: str, out_dir: str, formats: list[str], status=None, config=None) -> list[str]`
+
+> ⚠️ report/ai 함수는 **첫 인자가 `conn` 이 아니라 `db_path`(str)** 입니다.
+> 내부에서 `with db.get_connection(db_path) as conn:` 으로 여세요.
 
 ---
 
@@ -173,7 +192,12 @@ CREATE TABLE IF NOT EXISTS news_analysis (
 필수에 가까운 키:
 - `sources.aitimes.rss_urls` : string[]
 - `sources.aitimes.list_url_templates` : string[]
-- `duplicate_policy` : `"skip"` | `"upsert"`
+- `duplicate_policy` : `"skip"` | `"upsert"` — **기본값 `"upsert"` (변경 금지)**
+  - RSS 와 크롤링이 같은 기사 URL 을 수집합니다. `"skip"` 이면 나중에 도는 크롤링 결과가
+    전부 버려져 `category` 가 전부 NULL 이 되고 본문이 리드 문단만 남습니다
+    (→ 필수 차트 "카테고리별 뉴스 수" 와 `analyze --category` 가 깨집니다).
+  - 그래서 **실행 순서도 계약입니다: `fetch --method rss` → `fetch --method crawl` → `clean`**
+    (순서가 반대면 RSS 가 크롤링 본문·카테고리를 NULL 로 덮어씁니다.)
 - `crawl.delay_sec` : number
 - `paths.db` : string
 - `report.top_n` : number

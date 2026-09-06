@@ -56,3 +56,7 @@ htmlcov/
 
 # 로컬 설정 (config.example.json 을 복사해서 사용)
 config/config.json
+
+# 개발 중 임시 점검/스크래치 파일 (파이프라인 실행에는 불필요, 로컬 디버깅용)
+check_db.py
+*_page.html
